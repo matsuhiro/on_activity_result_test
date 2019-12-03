@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
-void main() => runApp(MyApp());
+void main() {
+  print('enter main');
+  runApp(MyApp());
+  print('exit main');
+}
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
@@ -18,7 +23,7 @@ class MyApp extends StatelessWidget {
         // or simply save your changes to "hot reload" in a Flutter IDE).
         // Notice that the counter didn't reset back to zero; the application
         // is not restarted.
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.red,
       ),
       home: MyHomePage(title: 'Flutter Demo Home Page'),
     );
@@ -46,6 +51,24 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
 
+  MethodChannel _platformChannel = MethodChannel("sampleapp/main");
+
+  @override
+  void initState() {
+    super.initState();
+    _getAndSetCount();
+  }
+
+  void _getAndSetCount() async {
+    print('before getActivityResult');
+    int newCount = await _platformChannel.invokeMethod("getActivityResult");
+    print('after getActivityResult');
+
+    setState(() {
+      _counter = newCount;
+    });
+  }
+
   void _incrementCounter() {
     setState(() {
       // This call to setState tells the Flutter framework that something has
@@ -55,6 +78,14 @@ class _MyHomePageState extends State<MyHomePage> {
       // called again, and so nothing would appear to happen.
       _counter++;
     });
+  }
+
+  void openOtherScreen() async {
+    print('before openOtherScreen');
+    await _platformChannel.invokeMethod("openOtherScreen", _counter);
+    print('after openOtherScreen');
+
+    _getAndSetCount();
   }
 
   @override
@@ -97,6 +128,11 @@ class _MyHomePageState extends State<MyHomePage> {
             Text(
               '$_counter',
               style: Theme.of(context).textTheme.display1,
+            ),
+            FlatButton(
+              color: Colors.blue,
+              child: Text('button'),
+              onPressed: openOtherScreen,
             ),
           ],
         ),
